@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TypeLess</string>
+    <string name="accessibility_description">TypeLess использует Accessibility Service для отслеживания ввода текста и замены триггеров на сниппеты. Данные не покидают устройство.</string>
+</resources>
