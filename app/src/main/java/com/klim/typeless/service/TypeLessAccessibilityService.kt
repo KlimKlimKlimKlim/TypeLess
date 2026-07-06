@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.klim.typeless.data.repository.SnippetRepository
 import com.klim.typeless.util.PlaceholderParser
 import com.klim.typeless.util.VariableExpander
@@ -59,19 +60,39 @@ class TypeLessAccessibilityService : AccessibilityService() {
                 val newText = text.replace(match.fullMatch, filled)
 
                 withContext(Dispatchers.Main) {
-                    val arguments = Bundle().apply {
-                        putCharSequence(
-                            AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                            newText
-                        )
+                    try {
+                        val arguments = Bundle().apply {
+                            putCharSequence(
+                                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+                                newText
+                            )
+                        }
+                        sourceNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+                    } catch (e: Exception) {
+                        logNonFatal(e, "performAction failed")
                     }
-                    sourceNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
                 }
 
                 repository.incrementUsage(snippet.id, filled.length - cleanTrigger.length)
+            } catch (e: Exception) {
+                logNonFatal(e, "onAccessibilityEvent processing failed")
             } finally {
-                sourceNode.recycle()
+                try {
+                    sourceNode.recycle()
+                } catch (e: Exception) {
+                    logNonFatal(e, "sourceNode.recycle failed")
+                }
             }
+        }
+    }
+
+    private fun logNonFatal(e: Exception, context: String) {
+        try {
+            FirebaseCrashlytics.getInstance().apply {
+                setCustomKey("context", context)
+                recordException(e)
+            }
+        } catch (_: Exception) {
         }
     }
 
