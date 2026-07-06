@@ -141,6 +141,7 @@ fun OnboardingScreen(
                         Text(
                             text = page.title,
                             style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center
                         )
                         if (page.isPremium) {
@@ -173,7 +174,7 @@ fun OnboardingScreen(
                     Button(
                         onClick = { viewModel.completeOnboarding(onFinish) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.large
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text("Продолжить")
                     }
@@ -181,7 +182,7 @@ fun OnboardingScreen(
                     Button(
                         onClick = { viewModel.openAccessibilitySettings() },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.large
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text("Включить сервис")
                     }
@@ -190,7 +191,7 @@ fun OnboardingScreen(
                 OutlinedButton(
                     onClick = { viewModel.completeOnboarding(onFinish) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text("Пропустить")
                 }
@@ -202,7 +203,7 @@ fun OnboardingScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text("Далее")
                 }
@@ -210,7 +211,7 @@ fun OnboardingScreen(
                 OutlinedButton(
                     onClick = { viewModel.completeOnboarding(onFinish) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text("Пропустить")
                 }
@@ -241,7 +242,7 @@ private fun ExampleBlock(example: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(16.dp)
     ) {
