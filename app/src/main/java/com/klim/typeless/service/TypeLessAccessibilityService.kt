@@ -10,6 +10,7 @@ import com.klim.typeless.util.VariableExpander
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ class TypeLessAccessibilityService : AccessibilityService() {
     @Inject lateinit var variableExpander: VariableExpander
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var activeJob: Job? = null
 
     private val withArgsRegex = Regex("""(/[a-zA-Zа-яА-ЯёЁ]+)\{([^}]*)\}""")
     private val noArgsRegex = Regex("""(/[a-zA-Zа-яА-ЯёЁ]+)""")
@@ -30,44 +32,46 @@ class TypeLessAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) return
         val text = event.text.firstOrNull()?.toString() ?: return
-        val nodeId = event.source?.also { it.recycle() }?.let { true } ?: return
+        val sourceNode = event.source ?: return
 
-        serviceScope.launch {
-            val match = extractTriggerWithInput(text) ?: return@launch
+        activeJob?.cancel()
+        activeJob = serviceScope.launch {
+            try {
+                val match = extractTriggerWithInput(text) ?: return@launch
 
-            val cleanTrigger = PlaceholderParser.stripTrigger(match.rawTrigger)
-            val snippet = repository.findByTrigger(cleanTrigger) ?: return@launch
+                val cleanTrigger = PlaceholderParser.stripTrigger(match.rawTrigger)
+                val snippet = repository.findByTrigger(cleanTrigger) ?: return@launch
 
-            val expanded = variableExpander.expand(snippet.content)
+                val expanded = variableExpander.expand(snippet.content)
 
-            val filled = if (match.hasArgs && PlaceholderParser.hasPlaceholders(expanded)) {
-                val argNames = PlaceholderParser.extractArgNames(snippet.trigger)
-                val argValues = PlaceholderParser.extractArgs(match.fullMatch, cleanTrigger)
-                if (argNames.isNotEmpty()) {
-                    PlaceholderParser.fillNamed(expanded, argNames, argValues)
+                val filled = if (match.hasArgs && PlaceholderParser.hasPlaceholders(expanded)) {
+                    val argNames = PlaceholderParser.extractArgNames(snippet.trigger)
+                    val argValues = PlaceholderParser.extractArgs(match.fullMatch, cleanTrigger)
+                    if (argNames.isNotEmpty()) {
+                        PlaceholderParser.fillNamed(expanded, argNames, argValues)
+                    } else {
+                        PlaceholderParser.fillPositional(expanded, argValues)
+                    }
                 } else {
-                    PlaceholderParser.fillPositional(expanded, argValues)
+                    expanded
                 }
-            } else {
-                expanded
-            }
 
-            val newText = text.replace(match.fullMatch, filled)
+                val newText = text.replace(match.fullMatch, filled)
 
-            withContext(Dispatchers.Main) {
-                val freshNode = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-                    ?: return@withContext
-                val arguments = Bundle().apply {
-                    putCharSequence(
-                        AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                        newText
-                    )
+                withContext(Dispatchers.Main) {
+                    val arguments = Bundle().apply {
+                        putCharSequence(
+                            AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+                            newText
+                        )
+                    }
+                    sourceNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
                 }
-                freshNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
-                freshNode.recycle()
-            }
 
-            repository.incrementUsage(snippet.id, filled.length - cleanTrigger.length)
+                repository.incrementUsage(snippet.id, filled.length - cleanTrigger.length)
+            } finally {
+                sourceNode.recycle()
+            }
         }
     }
 
@@ -109,6 +113,7 @@ class TypeLessAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        activeJob?.cancel()
         serviceScope.cancel()
     }
 
