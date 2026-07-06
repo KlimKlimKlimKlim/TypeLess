@@ -27,11 +27,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -40,13 +43,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
 private data class OnboardingPage(
     val icon: ImageVector,
     val title: String,
     val description: String,
-    val example: String? = null
+    val example: String? = null,
+    val isPremium: Boolean = false
 )
 
 private val pages = listOf(
@@ -65,7 +72,8 @@ private val pages = listOf(
         icon = Icons.Default.AutoAwesome,
         title = "Аргументы",
         description = "Добавь аргументы в триггер через {имя}. При вводе передай значения через запятую в фигурных скобках.",
-        example = "/привет{name} → Привет, {name}!\n\nВвод: /привет{Алина} → Привет, Алина!"
+        example = "/привет{name} → Привет, {name}!\n\nВвод: /привет{Алина} → Привет, Алина!",
+        isPremium = true
     ),
     OnboardingPage(
         icon = Icons.Default.Accessibility,
@@ -82,6 +90,20 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == pages.lastIndex
+    val isServiceEnabled by viewModel.isServiceEnabled.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshServiceStatus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -115,11 +137,17 @@ fun OnboardingScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(32.dp))
-                    Text(
-                        text = page.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Center
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = page.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        if (page.isPremium) {
+                            Spacer(modifier = Modifier.height(0.dp))
+                            PremiumBadge()
+                        }
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = page.description,
@@ -141,15 +169,22 @@ fun OnboardingScreen(
             )
 
             if (isLastPage) {
-                Button(
-                    onClick = {
-                        viewModel.openAccessibilitySettings()
-                        viewModel.completeOnboarding(onFinish)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Text("Включить сервис")
+                if (isServiceEnabled) {
+                    Button(
+                        onClick = { viewModel.completeOnboarding(onFinish) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Text("Продолжить")
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.openAccessibilitySettings() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Text("Включить сервис")
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
@@ -181,6 +216,23 @@ fun OnboardingScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PremiumBadge() {
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = "Premium",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }
 

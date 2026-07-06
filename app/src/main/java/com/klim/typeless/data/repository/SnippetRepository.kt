@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.InputStream
 import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,20 +46,6 @@ class SnippetRepository @Inject constructor(
     suspend fun exportToStream(outputStream: OutputStream) {
         val snippets = dao.getAllSnippetsOnce().map { it.toDomain() }
         outputStream.use { it.write(Json.encodeToString(snippets).toByteArray()) }
-    }
-
-    suspend fun importFromStream(inputStream: InputStream): Int {
-        val incoming = Json.decodeFromString<List<Snippet>>(
-            inputStream.use { it.readBytes().decodeToString() }
-        )
-        var imported = 0
-        for (snippet in incoming) {
-            if (dao.findByTrigger(snippet.trigger) == null) {
-                dao.insert(snippet.copy(id = 0).toEntity())
-                imported++
-            }
-        }
-        return imported
     }
 
     suspend fun getSnippetById(id: Int): Snippet? =

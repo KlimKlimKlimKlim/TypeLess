@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.klim.typeless.data.preferences.AppPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +21,13 @@ class OnboardingViewModel @Inject constructor(
 ) : ViewModel() {
 
     val isOnboardingDone = appPreferences.isOnboardingDone
+
+    private val _isServiceEnabled = MutableStateFlow(false)
+    val isServiceEnabled: StateFlow<Boolean> = _isServiceEnabled.asStateFlow()
+
+    fun refreshServiceStatus() {
+        _isServiceEnabled.value = isAccessibilityServiceEnabled()
+    }
 
     fun openAccessibilitySettings() {
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
@@ -30,6 +40,16 @@ class OnboardingViewModel @Inject constructor(
         viewModelScope.launch {
             appPreferences.setOnboardingDone()
             onFinish()
+        }
+    }
+
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+        return enabledServices.split(":").any {
+            it.contains("TypeLessAccessibilityService", ignoreCase = true)
         }
     }
 }
