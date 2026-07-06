@@ -38,3 +38,15 @@
 -keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**
 -dontwarn kotlinx.coroutines.**
+
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable
+-keep class com.google.firebase.crashlytics.** { *; }
+-dontwarn com.google.firebase.crashlytics.**
+
+-keep class com.google.android.gms.internal.** { *; }
+-dontwarn com.google.android.gms.**
+
+-keepclassmembers class * {
+    @com.google.firebase.crashlytics.internal.common.CrashlyticsUncaughtExceptionHandler *;
+}
