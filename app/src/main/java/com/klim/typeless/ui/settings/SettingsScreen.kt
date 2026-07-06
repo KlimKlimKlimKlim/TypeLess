@@ -3,16 +3,21 @@ package com.klim.typeless.ui.settings
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,9 +33,8 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -39,12 +43,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.klim.typeless.domain.usecase.ExportSnippetsUseCase
 import com.klim.typeless.domain.usecase.ImportSnippetsUseCase
 import com.klim.typeless.ui.navigation.Screen
 import com.klim.typeless.ui.theme.AppTheme
@@ -57,6 +63,7 @@ fun SettingsScreen(
 ) {
     val serviceEnabled by viewModel.serviceEnabled.collectAsStateWithLifecycle()
     val importResult by viewModel.importResult.collectAsStateWithLifecycle()
+    val exportResult by viewModel.exportResult.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val isPremium by viewModel.isPremium.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -80,6 +87,36 @@ fun SettingsScreen(
             snackbarHostState.showSnackbar(message)
             viewModel.clearImportResult()
         }
+    }
+
+    LaunchedEffect(exportResult) {
+        if (exportResult is ExportSnippetsUseCase.Result.Success) {
+            snackbarHostState.showSnackbar("Сниппеты экспортированы")
+            viewModel.clearExportResult()
+        }
+    }
+
+    if (exportResult is ExportSnippetsUseCase.Result.PremiumRequired) {
+        AlertDialog(
+            onDismissRequest = viewModel::clearExportResult,
+            title = { Text("Нужен Premium") },
+            text = { Text("Экспорт сниппетов доступен только в Premium. Открой Premium, чтобы сохранить свои сниппеты в файл.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearExportResult()
+                        navController.navigate(Screen.Paywall.route)
+                    }
+                ) {
+                    Text("Открыть Premium")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::clearExportResult) {
+                    Text("Отмена")
+                }
+            }
+        )
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -213,14 +250,7 @@ fun SettingsScreen(
                             )
                         }
 
-                        Switch(
-                            checked = serviceEnabled,
-                            onCheckedChange = { viewModel.openAccessibilitySettings() },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        )
+                        StatusDot(active = serviceEnabled)
                     }
 
                     if (!serviceEnabled) {
@@ -235,6 +265,18 @@ fun SettingsScreen(
                         )
 
                         Button(
+                            onClick = viewModel::openAccessibilitySettings,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text("Открыть настройки доступности")
+                        }
+                    } else {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+
+                        OutlinedButton(
                             onClick = viewModel::openAccessibilitySettings,
                             modifier = Modifier.fillMaxWidth(),
                             shape = MaterialTheme.shapes.medium
@@ -299,7 +341,7 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Сохранить в JSON",
+                                text = if (isPremium) "Сохранить в JSON" else "Доступно в Premium",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -399,6 +441,19 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun StatusDot(active: Boolean) {
+    Box(
+        modifier = Modifier
+            .size(12.dp)
+            .clip(CircleShape)
+            .background(
+                if (active) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.outlineVariant
+            )
+    )
 }
 
 @Composable

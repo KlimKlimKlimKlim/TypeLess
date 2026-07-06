@@ -37,6 +37,9 @@ class SettingsViewModel @Inject constructor(
     private val _importResult = MutableStateFlow<ImportSnippetsUseCase.Result?>(null)
     val importResult: StateFlow<ImportSnippetsUseCase.Result?> = _importResult.asStateFlow()
 
+    private val _exportResult = MutableStateFlow<ExportSnippetsUseCase.Result?>(null)
+    val exportResult: StateFlow<ExportSnippetsUseCase.Result?> = _exportResult.asStateFlow()
+
     val appTheme: StateFlow<AppTheme> = settingsRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppTheme.SYSTEM)
 
@@ -59,7 +62,13 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun export(outputStream: OutputStream) {
-        viewModelScope.launch { exportSnippets(outputStream) }
+        viewModelScope.launch {
+            _exportResult.value = exportSnippets(outputStream)
+        }
+    }
+
+    fun clearExportResult() {
+        _exportResult.value = null
     }
 
     fun import(inputStream: InputStream) {
