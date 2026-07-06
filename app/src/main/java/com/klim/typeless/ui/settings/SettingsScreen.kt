@@ -14,13 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -147,6 +147,7 @@ fun SettingsScreen(
                     Text(
                         text = "Настройки",
                         style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
@@ -174,7 +175,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SettingsCard {
+            SettingsSection {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -187,6 +188,7 @@ fun SettingsScreen(
                         Text(
                             text = "TypeLess Premium",
                             style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
@@ -209,7 +211,7 @@ fun SettingsScreen(
                     } else {
                         Button(
                             onClick = { navController.navigate(Screen.Paywall.route) },
-                            shape = MaterialTheme.shapes.medium
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Text("Купить")
                         }
@@ -217,11 +219,12 @@ fun SettingsScreen(
                 }
             }
 
-            SettingsCard {
+            SettingsSection {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Accessibility Service",
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
@@ -253,45 +256,22 @@ fun SettingsScreen(
                         StatusDot(active = serviceEnabled)
                     }
 
-                    if (!serviceEnabled) {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-
-                        Text(
-                            text = "Открой настройки доступности и включи TypeLess в списке сервисов.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Button(
-                            onClick = viewModel::openAccessibilitySettings,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Text("Открыть настройки доступности")
-                        }
-                    } else {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-
-                        OutlinedButton(
-                            onClick = viewModel::openAccessibilitySettings,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Text("Открыть настройки доступности")
-                        }
+                    Button(
+                        onClick = viewModel::openAccessibilitySettings,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Открыть настройки доступности")
                     }
                 }
             }
 
-            SettingsCard {
+            SettingsSection {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Тема оформления",
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
@@ -318,11 +298,12 @@ fun SettingsScreen(
                 }
             }
 
-            SettingsCard {
+            SettingsSection {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Данные",
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
@@ -349,14 +330,14 @@ fun SettingsScreen(
 
                         OutlinedButton(
                             onClick = { exportLauncher.launch("typeless_snippets.json") },
-                            shape = MaterialTheme.shapes.medium
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Text("Экспорт")
                         }
                     }
 
                     HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
                     )
 
                     Row(
@@ -382,7 +363,7 @@ fun SettingsScreen(
 
                         OutlinedButton(
                             onClick = { importLauncher.launch(arrayOf("application/json")) },
-                            shape = MaterialTheme.shapes.medium
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Text("Импорт")
                         }
@@ -390,7 +371,7 @@ fun SettingsScreen(
                 }
             }
 
-            SettingsCard {
+            SettingsSection {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -414,14 +395,14 @@ fun SettingsScreen(
 
                     OutlinedButton(
                         onClick = { navController.navigate(Screen.Onboarding.route) },
-                        shape = MaterialTheme.shapes.medium
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text("Открыть")
                     }
                 }
             }
 
-            SettingsCard {
+            SettingsSection {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -457,16 +438,14 @@ private fun StatusDot(active: Boolean) {
 }
 
 @Composable
-private fun SettingsCard(
+private fun SettingsSection(
     content: @Composable () -> Unit
 ) {
-    Card(
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = CardDefaults.outlinedCardBorder()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
