@@ -6,13 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -21,10 +20,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -34,6 +34,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -109,6 +111,7 @@ fun EditorScreen(
                             "Новый сниппет"
                         },
                         style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 },
@@ -132,97 +135,90 @@ fun EditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(20.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Card(
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            TextField(
+                value = trigger,
+                onValueChange = viewModel::onTriggerChange,
+                placeholder = { Text("Триггер, например /привет{name}") },
+                singleLine = true,
+                isError = triggerError != null,
+                supportingText = {
+                    Text(triggerError ?: "Например: /тел или /привет{name}")
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = CardDefaults.outlinedCardBorder()
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TextField(
+                value = content,
+                onValueChange = viewModel::onContentChange,
+                placeholder = { Text("Привет, {name}! Рад познакомиться.") },
+                minLines = 6,
+                supportingText = {
+                    Text("Аргументы вроде {name}, {дата}, {время}, {буфер} доступны в Premium.")
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded && filteredFolders.isNotEmpty(),
+                onExpandedChange = { dropdownExpanded = it }
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = "Основные данные",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Text(
-                        text = "Укажи триггер, текст сниппета и папку для сохранения.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    OutlinedTextField(
-                        value = trigger,
-                        onValueChange = viewModel::onTriggerChange,
-                        label = { Text("Триггер") },
-                        placeholder = { Text("/привет{name}") },
-                        singleLine = true,
-                        isError = triggerError != null,
-                        supportingText = {
-                            Text(triggerError ?: "Например: /тел или /привет{name}")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = content,
-                        onValueChange = viewModel::onContentChange,
-                        label = { Text("Текст сниппета") },
-                        placeholder = { Text("Привет, {name}! Рад познакомиться.") },
-                        minLines = 5,
-                        supportingText = {
-                            Text("Аргументы вроде {name}, {дата}, {время}, {буфер} доступны в Premium.")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    ExposedDropdownMenuBox(
-                        expanded = dropdownExpanded && filteredFolders.isNotEmpty(),
-                        onExpandedChange = { dropdownExpanded = it }
-                    ) {
-                        OutlinedTextField(
-                            value = folder,
-                            onValueChange = {
-                                viewModel.onFolderChange(it)
-                                dropdownExpanded = true
-                            },
-                            label = { Text("Папка") },
-                            singleLine = true,
-                            trailingIcon = {
-                                if (filteredFolders.isNotEmpty()) {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = dropdownExpanded
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryEditable)
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = dropdownExpanded && filteredFolders.isNotEmpty(),
-                            onDismissRequest = { dropdownExpanded = false }
-                        ) {
-                            filteredFolders.forEach { suggestion ->
-                                DropdownMenuItem(
-                                    text = { Text(suggestion) },
-                                    onClick = {
-                                        viewModel.onFolderChange(suggestion)
-                                        dropdownExpanded = false
-                                    }
-                                )
-                            }
+                TextField(
+                    value = folder,
+                    onValueChange = {
+                        viewModel.onFolderChange(it)
+                        dropdownExpanded = true
+                    },
+                    placeholder = { Text("Папка") },
+                    singleLine = true,
+                    trailingIcon = {
+                        if (filteredFolders.isNotEmpty()) {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = dropdownExpanded
+                            )
                         }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryEditable)
+                )
+
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded && filteredFolders.isNotEmpty(),
+                    onDismissRequest = { dropdownExpanded = false }
+                ) {
+                    filteredFolders.forEach { suggestion ->
+                        DropdownMenuItem(
+                            text = { Text(suggestion) },
+                            onClick = {
+                                viewModel.onFolderChange(suggestion)
+                                dropdownExpanded = false
+                            }
+                        )
                     }
                 }
             }
@@ -231,7 +227,7 @@ fun EditorScreen(
                 onClick = viewModel::save,
                 enabled = trigger.isNotBlank() && content.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = "Сохранить",
