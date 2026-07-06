@@ -3,6 +3,7 @@ package com.klim.typeless.ui.paywall
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,7 +48,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.klim.typeless.data.billing.BillingState
 import com.klim.typeless.data.billing.ConnectionState
-import androidx.compose.foundation.background
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +71,8 @@ fun PaywallScreen(
                 title = {
                     Text(
                         text = "Premium",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
                 },
                 navigationIcon = {
@@ -95,11 +95,11 @@ fun PaywallScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            HeroCard()
+            HeroSection()
 
-            FeaturesCard()
+            FeaturesSection()
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -130,7 +130,7 @@ fun PaywallScreen(
                 onClick = { viewModel.startPurchase(context.findActivity()) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = billingState !is BillingState.Purchased && !isConnecting,
-                shape = MaterialTheme.shapes.large,
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -165,92 +165,76 @@ fun PaywallScreen(
 }
 
 @Composable
-private fun HeroCard() {
-    Card(
+private fun HeroSection() {
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(
-                        brush = Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary
-                            )
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.linearGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
                         )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "{ }",
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = Color.White
-                )
-            }
-
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = "TypeLess Premium",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Text(
-                text = "Разовая покупка — 99 ₽",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = "{ }",
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = Color.White
             )
         }
+
+        Text(
+            text = "TypeLess Premium",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "Разовая покупка — 99 ₽",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
 @Composable
-private fun FeaturesCard() {
-    Card(
+private fun FeaturesSection() {
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            FeatureItem(
-                icon = "\u221E",
-                title = "Без ограничений",
-                description = "Неограниченное количество сниппетов"
-            )
-            FeatureItem(
-                icon = "/",
-                title = "Любые папки",
-                description = "Создавай папки для удобной организации"
-            )
-            FeatureItem(
-                icon = "{ }",
-                title = "Аргументы и переменные",
-                description = "Используй {name}, {дата}, {время}, {буфер} в сниппетах"
-            )
-        }
+        FeatureItem(
+            icon = "\u221E",
+            title = "Без ограничений",
+            description = "Неограниченное количество сниппетов"
+        )
+        FeatureItem(
+            icon = "/",
+            title = "Любые папки",
+            description = "Создавай папки для удобной организации"
+        )
+        FeatureItem(
+            icon = "{ }",
+            title = "Аргументы и переменные",
+            description = "Используй {name}, {дата}, {время}, {буфер} в сниппетах"
+        )
+        FeatureItem(
+            icon = "↑",
+            title = "Экспорт сниппетов",
+            description = "Сохраняй все сниппеты в файл и переноси между устройствами"
+        )
     }
 }
 
@@ -261,12 +245,17 @@ private fun FeatureItem(
     description: String
 ) {
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(14.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
@@ -282,6 +271,7 @@ private fun FeatureItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
