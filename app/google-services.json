@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "908047008412",
+    "project_id": "typeless-b7960",
+    "storage_bucket": "typeless-b7960.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908047008412:android:84a3c97491e11f5946a359",
+        "android_client_info": {
+          "package_name": "com.klim.typeless"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjVcbSqGm5Hitk5pZcFPFz4RTtG9EpCb8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
