@@ -70,7 +70,7 @@ fun EditorScreen(
             SaveSnippetUseCase.Result.FolderRestricted ->
                 "В бесплатной версии доступна только папка General. Открой Premium, чтобы создавать свои папки."
             SaveSnippetUseCase.Result.ArgumentsRestricted ->
-                "Аргументы в сниппетах доступны только в Premium. Открой Premium, чтобы использовать {name}, {date} и другие."
+                "Аргументы и переменные ({name}, {дата}, {время}, {буфер}) доступны только в Premium. Открой Premium, чтобы использовать их в сниппетах."
             else -> null
         }
 
@@ -180,7 +180,7 @@ fun EditorScreen(
                         placeholder = { Text("Привет, {name}! Рад познакомиться.") },
                         minLines = 5,
                         supportingText = {
-                            Text("Можно использовать аргументы вроде {name}, {date} и другие.")
+                            Text("Аргументы вроде {name}, {дата}, {время}, {буфер} доступны в Premium.")
                         },
                         modifier = Modifier.fillMaxWidth()
                     )

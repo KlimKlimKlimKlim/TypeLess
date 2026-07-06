@@ -247,8 +247,8 @@ private fun FeaturesCard() {
             )
             FeatureItem(
                 icon = "{ }",
-                title = "Аргументы",
-                description = "Используй {name}, {date} и другие в сниппетах"
+                title = "Аргументы и переменные",
+                description = "Используй {name}, {дата}, {время}, {буфер} в сниппетах"
             )
         }
     }
