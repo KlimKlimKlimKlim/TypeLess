@@ -19,6 +19,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.math.min
 
 @Singleton
 class BillingManager @Inject constructor(
@@ -36,6 +38,8 @@ class BillingManager @Inject constructor(
 
     companion object {
         const val PRODUCT_ID = "premium_upgrade"
+        private const val MAX_RETRIES = 4
+        private const val BASE_RETRY_DELAY_MS = 1000L
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -50,14 +54,61 @@ class BillingManager @Inject constructor(
     private val _billingState = MutableStateFlow<BillingState>(BillingState.Idle)
     val billingState: StateFlow<BillingState> = _billingState.asStateFlow()
 
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+
+    private var retryCount = 0
+    private var isConnecting = false
+    private val pendingCallbacks = mutableListOf<() -> Unit>()
+
     fun connect(onReady: () -> Unit) {
+        if (billingClient.isReady) {
+            onReady()
+            return
+        }
+        pendingCallbacks.add(onReady)
+        if (isConnecting) return
+        startConnection()
+    }
+
+    private fun startConnection() {
+        isConnecting = true
+        _connectionState.value = ConnectionState.Connecting
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingResponseCode.OK) onReady()
+                isConnecting = false
+                if (result.responseCode == BillingResponseCode.OK) {
+                    retryCount = 0
+                    _connectionState.value = ConnectionState.Connected
+                    val callbacks = pendingCallbacks.toList()
+                    pendingCallbacks.clear()
+                    callbacks.forEach { it() }
+                } else {
+                    _connectionState.value = ConnectionState.Failed
+                    _billingState.value = BillingState.Error(result.debugMessage)
+                }
             }
 
-            override fun onBillingServiceDisconnected() {}
+            override fun onBillingServiceDisconnected() {
+                isConnecting = false
+                _connectionState.value = ConnectionState.Disconnected
+                retryConnection()
+            }
         })
+    }
+
+    private fun retryConnection() {
+        if (retryCount >= MAX_RETRIES) {
+            _connectionState.value = ConnectionState.Failed
+            _billingState.value = BillingState.Error("Не удалось подключиться к Google Play")
+            return
+        }
+        val delayMs = BASE_RETRY_DELAY_MS * (1L shl min(retryCount, 4))
+        retryCount++
+        scope.launch {
+            delay(delayMs)
+            startConnection()
+        }
     }
 
     suspend fun queryProduct(): ProductDetails? = suspendCancellableCoroutine { cont ->
@@ -140,4 +191,11 @@ sealed class BillingState {
     object Purchased : BillingState()
     object Cancelled : BillingState()
     data class Error(val message: String) : BillingState()
+}
+
+sealed class ConnectionState {
+    object Disconnected : ConnectionState()
+    object Connecting : ConnectionState()
+    object Connected : ConnectionState()
+    object Failed : ConnectionState()
 }

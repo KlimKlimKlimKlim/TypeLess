@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.klim.typeless.data.billing.BillingState
+import com.klim.typeless.data.billing.ConnectionState
 import androidx.compose.foundation.background
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +57,7 @@ fun PaywallScreen(
     viewModel: PaywallViewModel = hiltViewModel()
 ) {
     val billingState by viewModel.billingState.collectAsStateWithLifecycle()
+    val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(billingState) {
@@ -109,24 +112,47 @@ fun PaywallScreen(
                 )
             }
 
+            if (connectionState is ConnectionState.Failed) {
+                Text(
+                    text = "Нет связи с Google Play. Проверь интернет и попробуй снова.",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
+
+            val isConnecting = connectionState is ConnectionState.Connecting
+
             Button(
                 onClick = { viewModel.startPurchase(context.findActivity()) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = billingState !is BillingState.Purchased,
+                enabled = billingState !is BillingState.Purchased && !isConnecting,
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text(
-                    text = "Купить за 99 ₽",
-                    style = MaterialTheme.typography.labelLarge
-                )
+                if (isConnecting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Купить за 99 ₽",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
 
             TextButton(
                 onClick = viewModel::restorePurchases,
+                enabled = !isConnecting,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
@@ -255,12 +281,12 @@ private fun FeatureItem(
         Column {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -268,10 +294,10 @@ private fun FeatureItem(
 }
 
 private fun Context.findActivity(): Activity {
-    var ctx = this
-    while (ctx is ContextWrapper) {
-        if (ctx is Activity) return ctx
-        ctx = ctx.baseContext
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
     }
-    error("No Activity found in context chain")
+    throw IllegalStateException("Activity not found")
 }
