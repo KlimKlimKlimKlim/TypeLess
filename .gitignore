@@ -17,3 +17,5 @@ app/keystore.properties
 app/keystore/
 *.jks
 *.keystore
+app/release/
+*.aab
