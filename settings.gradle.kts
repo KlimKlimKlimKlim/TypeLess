@@ -16,9 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://artifactory-external.vkpartner.ru/artifactory/maven")
     }
 }
 
 rootProject.name = "TypeLess"
 include(":app")
- 

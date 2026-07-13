@@ -8,8 +8,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.firebase.crashlytics)
 }
 
 val keystoreProperties = Properties()
@@ -95,11 +93,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.billing.ktx)
-
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics.ktx)
-    implementation(libs.firebase.analytics.ktx)
+    implementation(platform(libs.rustore.bom))
+    implementation(libs.rustore.pay)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

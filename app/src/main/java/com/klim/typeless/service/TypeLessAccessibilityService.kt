@@ -2,9 +2,9 @@ package com.klim.typeless.service
 
 import android.accessibilityservice.AccessibilityService
 import android.os.Bundle
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.klim.typeless.data.repository.SnippetRepository
 import com.klim.typeless.util.PlaceholderParser
 import com.klim.typeless.util.VariableExpander
@@ -69,30 +69,20 @@ class TypeLessAccessibilityService : AccessibilityService() {
                         }
                         sourceNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
                     } catch (e: Exception) {
-                        logNonFatal(e, "performAction failed")
+                        Log.e("TypeLessService", "performAction failed", e)
                     }
                 }
 
                 repository.incrementUsage(snippet.id, filled.length - cleanTrigger.length)
             } catch (e: Exception) {
-                logNonFatal(e, "onAccessibilityEvent processing failed")
+                Log.e("TypeLessService", "onAccessibilityEvent processing failed", e)
             } finally {
                 try {
                     sourceNode.recycle()
                 } catch (e: Exception) {
-                    logNonFatal(e, "sourceNode.recycle failed")
+                    Log.e("TypeLessService", "sourceNode.recycle failed", e)
                 }
             }
-        }
-    }
-
-    private fun logNonFatal(e: Exception, context: String) {
-        try {
-            FirebaseCrashlytics.getInstance().apply {
-                setCustomKey("context", context)
-                recordException(e)
-            }
-        } catch (_: Exception) {
         }
     }
 
