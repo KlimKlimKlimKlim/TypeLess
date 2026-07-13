@@ -13,10 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TypeLess">
 
-        <meta-data
-            android:name="console_app_id_key"
-            android:value="@string/CONSOLE_APPLICATION_ID" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
