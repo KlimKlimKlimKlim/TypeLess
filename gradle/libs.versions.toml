@@ -17,6 +17,7 @@ datastore = "1.1.4"
 coroutines = "1.10.2"
 serialization = "1.8.1"
 rustoreBom = "8.0.0-alpha02"
+yandexMobileAds = "7.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +48,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 rustore-bom = { group = "ru.rustore.sdk", name = "bom", version.ref = "rustoreBom" }
 rustore-pay = { group = "ru.rustore.sdk", name = "pay" }
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+yandex-mobileads = { group = "com.yandex.android", name = "mobileads", version.ref = "yandexMobileAds" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -17,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,6 +31,8 @@ fun PaywallScreen(
     viewModel: PaywallViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val adState by viewModel.adState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -49,7 +53,14 @@ fun PaywallScreen(
         PaywallContent(
             innerPadding = innerPadding,
             uiState = uiState,
-            onUnlockClick = viewModel::unlockForTesting
+            isAdLoading = adState.isLoading,
+            hasAdError = adState.hasError,
+            onUnlockClick = {
+                val activity = context as? android.app.Activity
+                if (activity != null) {
+                    viewModel.onWatchAdClick(activity)
+                }
+            }
         )
     }
 }
@@ -58,6 +69,8 @@ fun PaywallScreen(
 private fun PaywallContent(
     innerPadding: PaddingValues,
     uiState: PaywallUiState,
+    isAdLoading: Boolean,
+    hasAdError: Boolean,
     onUnlockClick: () -> Unit
 ) {
     Column(
@@ -94,6 +107,14 @@ private fun PaywallContent(
                     Text(
                         text = "Time left: ${formatDuration(uiState.remainingMillis)}",
                         style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                if (hasAdError) {
+                    Text(
+                        text = "Ad is not ready yet. Try again in a moment.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -137,19 +158,24 @@ private fun PaywallContent(
 
         Button(
             onClick = onUnlockClick,
+            enabled = !isAdLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = if (uiState.isUnlocked) {
-                    "Extend unlock for 3 hours"
-                } else {
-                    "Test unlock for 3 hours"
-                }
-            )
+            if (isAdLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(2.dp))
+            } else {
+                Text(
+                    text = if (uiState.isUnlocked) {
+                        "Extend unlock for 3 hours"
+                    } else {
+                        "Watch ad to unlock for 3 hours"
+                    }
+                )
+            }
         }
 
         Text(
-            text = "Temporary button for testing. Later it will be replaced with rewarded ad.",
+            text = "Rewarded ad required to unlock all limits.",
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
