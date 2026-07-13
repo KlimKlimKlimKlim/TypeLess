@@ -77,12 +77,14 @@ fun SettingsScreen(
     LaunchedEffect(importResult) {
         importResult?.let { result ->
             val message = when (result) {
-                is ImportSnippetsUseCase.Result.Success ->
-                    "Импортировано сниппетов: ${result.imported}"
-                is ImportSnippetsUseCase.Result.PartialSuccess ->
-                    "Импортировано: ${result.imported}, пропущено: ${result.skipped}"
-                ImportSnippetsUseCase.Result.LimitReached ->
-                    "Достигнут лимит 5 сниппетов. Открой Premium."
+                ImportSnippetsUseCase.Result.Success ->
+                    "Сниппеты импортированы"
+                ImportSnippetsUseCase.Result.Restricted ->
+                    "Импорт доступен только во время временной разблокировки"
+                ImportSnippetsUseCase.Result.InvalidFile ->
+                    "Некорректный JSON-файл"
+                ImportSnippetsUseCase.Result.Error ->
+                    "Не удалось импортировать сниппеты"
             }
             snackbarHostState.showSnackbar(message)
             viewModel.clearImportResult()
@@ -90,17 +92,33 @@ fun SettingsScreen(
     }
 
     LaunchedEffect(exportResult) {
-        if (exportResult is ExportSnippetsUseCase.Result.Success) {
-            snackbarHostState.showSnackbar("Сниппеты экспортированы")
-            viewModel.clearExportResult()
+        exportResult?.let { result ->
+            when (result) {
+                ExportSnippetsUseCase.Result.Success -> {
+                    snackbarHostState.showSnackbar("Сниппеты экспортированы")
+                    viewModel.clearExportResult()
+                }
+                ExportSnippetsUseCase.Result.Restricted -> {
+                    viewModel.clearExportResult()
+                }
+                ExportSnippetsUseCase.Result.Error -> {
+                    snackbarHostState.showSnackbar("Не удалось экспортировать сниппеты")
+                    viewModel.clearExportResult()
+                }
+            }
         }
     }
 
-    if (exportResult is ExportSnippetsUseCase.Result.PremiumRequired) {
+    if (exportResult is ExportSnippetsUseCase.Result.Restricted) {
         AlertDialog(
             onDismissRequest = viewModel::clearExportResult,
-            title = { Text("Нужен Premium") },
-            text = { Text("Экспорт сниппетов доступен только в Premium. Открой Premium, чтобы сохранить свои сниппеты в файл.") },
+            title = { Text("Нужна разблокировка") },
+            text = {
+                Text(
+                    "Экспорт сниппетов доступен только во время временной разблокировки. " +
+                            "Открой экран разблокировки, чтобы снять ограничения на 3 часа."
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
@@ -108,7 +126,7 @@ fun SettingsScreen(
                         navController.navigate(Screen.Paywall.route)
                     }
                 ) {
-                    Text("Открыть Premium")
+                    Text("Открыть разблокировку")
                 }
             },
             dismissButton = {
@@ -186,16 +204,16 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "TypeLess Premium",
+                            text = "Временная разблокировка",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = if (isPremium) {
-                                "Подписка активна"
+                                "Ограничения временно сняты"
                             } else {
-                                "Бесплатная версия — до 5 сниппетов"
+                                "Бесплатная версия: до 5 сниппетов, только General, без аргументов"
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -204,7 +222,7 @@ fun SettingsScreen(
 
                     if (isPremium) {
                         Text(
-                            text = "Активен",
+                            text = "Активна",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -213,7 +231,7 @@ fun SettingsScreen(
                             onClick = { navController.navigate(Screen.Paywall.route) },
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Купить")
+                            Text("Открыть")
                         }
                     }
                 }
@@ -322,7 +340,11 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (isPremium) "Сохранить в JSON" else "Доступно в Premium",
+                                text = if (isPremium) {
+                                    "Сохранить в JSON"
+                                } else {
+                                    "Доступно во время временной разблокировки"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -355,7 +377,11 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Загрузить из JSON",
+                                text = if (isPremium) {
+                                    "Загрузить из JSON"
+                                } else {
+                                    "Доступно во время временной разблокировки"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

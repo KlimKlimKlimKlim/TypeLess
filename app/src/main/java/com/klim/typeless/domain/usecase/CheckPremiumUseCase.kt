@@ -7,5 +7,5 @@ import javax.inject.Inject
 class CheckPremiumUseCase @Inject constructor(
     private val premiumRepository: PremiumRepository
 ) {
-    operator fun invoke(): Flow<Boolean> = premiumRepository.isPremium
+    operator fun invoke(): Flow<Boolean> = premiumRepository.hasPremiumAccess
 }

@@ -10,10 +10,15 @@ class GetFoldersUseCase @Inject constructor(
     private val repository: SnippetRepository,
     private val premiumRepository: PremiumRepository
 ) {
-    operator fun invoke(): Flow<List<String>> = combine(
-        repository.getAllFolders(),
-        premiumRepository.isPremium
-    ) { folders, isPremium ->
-        if (isPremium) folders else listOf("General")
-    }
+    operator fun invoke(): Flow<List<String>> =
+        combine(
+            repository.getAllFolders(),
+            premiumRepository.hasPremiumAccess
+        ) { folders, hasPremiumAccess ->
+            if (hasPremiumAccess) {
+                folders
+            } else {
+                folders.filter { it == "General" }
+            }
+        }
 }

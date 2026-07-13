@@ -2,7 +2,9 @@ package com.klim.typeless.domain.usecase
 
 import com.klim.typeless.data.repository.PremiumRepository
 import com.klim.typeless.data.repository.SnippetRepository
+import com.klim.typeless.domain.model.Snippet
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 import java.io.InputStream
 import javax.inject.Inject
 
@@ -11,58 +13,25 @@ class ImportSnippetsUseCase @Inject constructor(
     private val premiumRepository: PremiumRepository
 ) {
     sealed class Result {
-        data class Success(val imported: Int) : Result()
-        data class PartialSuccess(val imported: Int, val skipped: Int) : Result()
-        object LimitReached : Result()
+        object Success : Result()
+        object Restricted : Result()
+        object InvalidFile : Result()
+        object Error : Result()
     }
 
     suspend operator fun invoke(inputStream: InputStream): Result {
-        val isPremium = premiumRepository.isPremium.first()
-        val incoming = parseStream(inputStream) ?: return Result.LimitReached
+        val hasPremiumAccess = premiumRepository.hasPremiumAccess.first()
+        if (!hasPremiumAccess) return Result.Restricted
 
-        if (isPremium) {
-            var imported = 0
-            for (snippet in incoming) {
-                if (repository.findByTrigger(snippet.trigger) == null) {
-                    repository.save(snippet.copy(id = 0))
-                    imported++
-                }
-            }
-            return Result.Success(imported)
+        return try {
+            val json = inputStream.bufferedReader().use { it.readText() }
+            val snippets = Json.decodeFromString<List<Snippet>>(json)
+            snippets.forEach { repository.save(it.copy(id = 0)) }
+            Result.Success
+        } catch (e: kotlinx.serialization.SerializationException) {
+            Result.InvalidFile
+        } catch (_: Exception) {
+            Result.Error
         }
-
-        val currentCount = repository.getSnippetsCount()
-        val available = SaveSnippetUseCase.FREE_SNIPPETS_LIMIT - currentCount
-
-        if (available <= 0) return Result.LimitReached
-
-        var imported = 0
-        var skipped = 0
-
-        for (snippet in incoming) {
-            if (imported >= available) {
-                skipped++
-                continue
-            }
-            if (snippet.folder != "General" || snippet.arguments.isNotEmpty()) {
-                skipped++
-                continue
-            }
-            if (repository.findByTrigger(snippet.trigger) == null) {
-                repository.save(snippet.copy(id = 0, folder = "General", arguments = emptyList()))
-                imported++
-            } else {
-                skipped++
-            }
-        }
-
-        return if (skipped > 0) Result.PartialSuccess(imported, skipped) else Result.Success(imported)
     }
-
-    private fun parseStream(inputStream: InputStream): List<com.klim.typeless.domain.model.Snippet>? =
-        runCatching {
-            kotlinx.serialization.json.Json.decodeFromString<List<com.klim.typeless.domain.model.Snippet>>(
-                inputStream.use { it.readBytes().decodeToString() }
-            )
-        }.getOrNull()
 }
