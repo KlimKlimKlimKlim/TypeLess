@@ -64,7 +64,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val folders by viewModel.folders.collectAsStateWithLifecycle()
-    val isPremium by viewModel.isPremium.collectAsStateWithLifecycle()
+    val isUnlocked by viewModel.isUnlocked.collectAsStateWithLifecycle()
     val snippetsCount by viewModel.snippetsCount.collectAsStateWithLifecycle()
     val pendingDeleteFolder by viewModel.pendingDeleteFolder.collectAsStateWithLifecycle()
     val renameTarget by viewModel.renameTarget.collectAsStateWithLifecycle()
@@ -130,7 +130,7 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    if (!isPremium) {
+                    if (!isUnlocked) {
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant,

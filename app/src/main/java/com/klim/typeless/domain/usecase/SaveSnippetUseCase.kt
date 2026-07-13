@@ -1,14 +1,14 @@
 package com.klim.typeless.domain.usecase
 
-import com.klim.typeless.data.repository.PremiumRepository
 import com.klim.typeless.data.repository.SnippetRepository
+import com.klim.typeless.data.repository.UnlockRepository
 import com.klim.typeless.domain.model.Snippet
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class SaveSnippetUseCase @Inject constructor(
     private val repository: SnippetRepository,
-    private val premiumRepository: PremiumRepository
+    private val unlockRepository: UnlockRepository
 ) {
     sealed class Result {
         object Success : Result()
@@ -18,9 +18,9 @@ class SaveSnippetUseCase @Inject constructor(
     }
 
     suspend operator fun invoke(snippet: Snippet): Result {
-        val hasPremiumAccess = premiumRepository.hasPremiumAccess.first()
+        val isUnlocked = unlockRepository.isUnlocked.first()
 
-        if (!hasPremiumAccess) {
+        if (!isUnlocked) {
             if (snippet.folder != "General") return Result.FolderRestricted
             if (snippet.arguments.isNotEmpty()) return Result.ArgumentsRestricted
 

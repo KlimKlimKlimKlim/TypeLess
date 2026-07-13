@@ -6,9 +6,9 @@ import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.klim.typeless.data.preferences.SettingsRepository
-import com.klim.typeless.domain.usecase.CheckPremiumUseCase
 import com.klim.typeless.domain.usecase.ExportSnippetsUseCase
 import com.klim.typeless.domain.usecase.ImportSnippetsUseCase
+import com.klim.typeless.domain.usecase.ObserveUnlockStatusUseCase
 import com.klim.typeless.ui.theme.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,7 +28,7 @@ class SettingsViewModel @Inject constructor(
     private val exportSnippets: ExportSnippetsUseCase,
     private val importSnippets: ImportSnippetsUseCase,
     private val settingsRepository: SettingsRepository,
-    checkPremium: CheckPremiumUseCase
+    observeUnlockStatus: ObserveUnlockStatusUseCase
 ) : ViewModel() {
 
     private val _serviceEnabled = MutableStateFlow(false)
@@ -43,7 +43,7 @@ class SettingsViewModel @Inject constructor(
     val appTheme: StateFlow<AppTheme> = settingsRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppTheme.SYSTEM)
 
-    val isPremium: StateFlow<Boolean> = checkPremium()
+    val isUnlocked: StateFlow<Boolean> = observeUnlockStatus()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun setTheme(theme: AppTheme) {

@@ -11,7 +11,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PremiumRepository @Inject constructor(
+class UnlockRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val unlockedUntilKey = longPreferencesKey("unlocked_until")
@@ -20,7 +20,7 @@ class PremiumRepository @Inject constructor(
         prefs[unlockedUntilKey] ?: 0L
     }
 
-    val hasPremiumAccess: Flow<Boolean> = unlockedUntil.map { unlockedUntil ->
+    val isUnlocked: Flow<Boolean> = unlockedUntil.map { unlockedUntil ->
         unlockedUntil > System.currentTimeMillis()
     }
 

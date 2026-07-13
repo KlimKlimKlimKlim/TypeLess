@@ -1,7 +1,7 @@
 package com.klim.typeless.domain.usecase
 
-import com.klim.typeless.data.repository.PremiumRepository
 import com.klim.typeless.data.repository.SnippetRepository
+import com.klim.typeless.data.repository.UnlockRepository
 import com.klim.typeless.domain.model.Snippet
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 class ImportSnippetsUseCase @Inject constructor(
     private val repository: SnippetRepository,
-    private val premiumRepository: PremiumRepository
+    private val unlockRepository: UnlockRepository
 ) {
     sealed class Result {
         object Success : Result()
@@ -20,8 +20,8 @@ class ImportSnippetsUseCase @Inject constructor(
     }
 
     suspend operator fun invoke(inputStream: InputStream): Result {
-        val hasPremiumAccess = premiumRepository.hasPremiumAccess.first()
-        if (!hasPremiumAccess) return Result.Restricted
+        val isUnlocked = unlockRepository.isUnlocked.first()
+        if (!isUnlocked) return Result.Restricted
 
         return try {
             val json = inputStream.bufferedReader().use { it.readText() }

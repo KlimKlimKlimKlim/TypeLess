@@ -3,7 +3,7 @@ package com.klim.typeless.ui.paywall
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.klim.typeless.data.ads.RewardedAdManager
-import com.klim.typeless.data.repository.PremiumRepository
+import com.klim.typeless.data.repository.UnlockRepository
 import com.klim.typeless.domain.usecase.UnlockForRewardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PaywallViewModel @Inject constructor(
-    premiumRepository: PremiumRepository,
+    unlockRepository: UnlockRepository,
     private val unlockForRewardUseCase: UnlockForRewardUseCase,
     private val rewardedAdManager: RewardedAdManager
 ) : ViewModel() {
@@ -32,7 +32,7 @@ class PaywallViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<PaywallUiState> = combine(
-        premiumRepository.unlockedUntil,
+        unlockRepository.unlockedUntil,
         currentTimeFlow
     ) { unlockedUntil, currentTime ->
         val remainingMillis = (unlockedUntil - currentTime).coerceAtLeast(0L)

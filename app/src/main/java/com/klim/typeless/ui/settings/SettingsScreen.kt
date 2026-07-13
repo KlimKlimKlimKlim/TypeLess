@@ -65,7 +65,7 @@ fun SettingsScreen(
     val importResult by viewModel.importResult.collectAsStateWithLifecycle()
     val exportResult by viewModel.exportResult.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
-    val isPremium by viewModel.isPremium.collectAsStateWithLifecycle()
+    val isUnlocked by viewModel.isUnlocked.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -210,7 +210,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (isPremium) {
+                            text = if (isUnlocked) {
                                 "Ограничения снятия временно"
                             } else {
                                 "Бесплатная версия — до 5 сниппетов"
@@ -220,7 +220,7 @@ fun SettingsScreen(
                         )
                     }
 
-                    if (isPremium) {
+                    if (isUnlocked) {
                         Text(
                             text = "Активно",
                             style = MaterialTheme.typography.labelLarge,
@@ -340,7 +340,7 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (isPremium) {
+                                text = if (isUnlocked) {
                                     "Сохранить в JSON"
                                 } else {
                                     "Доступно во время временной разблокировки"
@@ -377,7 +377,7 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (isPremium) {
+                                text = if (isUnlocked) {
                                     "Загрузить из JSON"
                                 } else {
                                     "Доступно во время временной разблокировки"

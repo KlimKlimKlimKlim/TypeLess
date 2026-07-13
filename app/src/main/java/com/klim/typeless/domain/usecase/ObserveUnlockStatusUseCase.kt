@@ -1,12 +1,11 @@
 package com.klim.typeless.domain.usecase
 
 import com.klim.typeless.data.repository.UnlockRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class UnlockForRewardUseCase @Inject constructor(
+class ObserveUnlockStatusUseCase @Inject constructor(
     private val unlockRepository: UnlockRepository
 ) {
-    suspend operator fun invoke(hours: Int = 3) {
-        unlockRepository.unlockForHours(hours)
-    }
+    operator fun invoke(): Flow<Boolean> = unlockRepository.isUnlocked
 }

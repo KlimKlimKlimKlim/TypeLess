@@ -2,11 +2,9 @@ package com.klim.typeless.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.klim.typeless.data.repository.PremiumRepository
 import com.klim.typeless.data.repository.SnippetRepository
-import com.klim.typeless.domain.usecase.CheckPremiumUseCase
 import com.klim.typeless.domain.usecase.GetFoldersUseCase
-import com.klim.typeless.domain.usecase.SaveSnippetUseCase
+import com.klim.typeless.domain.usecase.ObserveUnlockStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     getFolders: GetFoldersUseCase,
-    checkPremium: CheckPremiumUseCase,
+    observeUnlockStatus: ObserveUnlockStatusUseCase,
     private val repository: SnippetRepository
 ) : ViewModel() {
 
@@ -30,7 +28,7 @@ class HomeViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    val isPremium: StateFlow<Boolean> = checkPremium()
+    val isUnlocked: StateFlow<Boolean> = observeUnlockStatus()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
