@@ -18,9 +18,9 @@ class SaveSnippetUseCase @Inject constructor(
     }
 
     suspend operator fun invoke(snippet: Snippet): Result {
-        val isPremium = premiumRepository.isPremium.first()
+        val hasPremiumAccess = premiumRepository.hasPremiumAccess.first()
 
-        if (!isPremium) {
+        if (!hasPremiumAccess) {
             if (snippet.folder != "General") return Result.FolderRestricted
             if (snippet.arguments.isNotEmpty()) return Result.ArgumentsRestricted
 

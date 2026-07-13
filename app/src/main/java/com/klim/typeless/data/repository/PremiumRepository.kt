@@ -1,8 +1,8 @@
 package com.klim.typeless.data.repository
 
 import android.content.Context
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import com.klim.typeless.data.preferences.appDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -14,15 +14,30 @@ import javax.inject.Singleton
 class PremiumRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val isPremiumKey = booleanPreferencesKey("is_premium")
+    private val unlockedUntilKey = longPreferencesKey("unlocked_until")
 
-    val isPremium: Flow<Boolean> = context.appDataStore.data.map { prefs ->
-        prefs[isPremiumKey] ?: false
+    val unlockedUntil: Flow<Long> = context.appDataStore.data.map { prefs ->
+        prefs[unlockedUntilKey] ?: 0L
     }
 
-    suspend fun setPremium(value: Boolean) {
+    val hasPremiumAccess: Flow<Boolean> = unlockedUntil.map { unlockedUntil ->
+        unlockedUntil > System.currentTimeMillis()
+    }
+
+    suspend fun setUnlockUntil(timestamp: Long) {
         context.appDataStore.edit { prefs ->
-            prefs[isPremiumKey] = value
+            prefs[unlockedUntilKey] = timestamp
+        }
+    }
+
+    suspend fun unlockForHours(hours: Int = 3) {
+        val unlockUntil = System.currentTimeMillis() + hours * 60 * 60 * 1000L
+        setUnlockUntil(unlockUntil)
+    }
+
+    suspend fun clearUnlock() {
+        context.appDataStore.edit { prefs ->
+            prefs[unlockedUntilKey] = 0L
         }
     }
 }
