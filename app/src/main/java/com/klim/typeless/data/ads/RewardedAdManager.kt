@@ -19,18 +19,24 @@ class RewardedAdManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private var rewardedAd: RewardedAd? = null
+    private var isLoading = false
     private val rewardedAdLoader = RewardedAdLoader(context)
 
     fun loadAd() {
+        if (isLoading || rewardedAd != null) return
+        isLoading = true
+
         val adRequestConfiguration =
             AdRequestConfiguration.Builder(AdUnitIds.REWARDED).build()
 
         rewardedAdLoader.setAdLoadListener(object : RewardedAdLoadListener {
             override fun onAdLoaded(rewardedAd: RewardedAd) {
+                isLoading = false
                 this@RewardedAdManager.rewardedAd = rewardedAd
             }
 
             override fun onAdFailedToLoad(error: AdRequestError) {
+                isLoading = false
                 rewardedAd = null
             }
         })
@@ -48,7 +54,7 @@ class RewardedAdManager @Inject constructor(
     ) {
         val ad = rewardedAd
 
-        if (ad == null) {
+        if (ad == null || activity.isFinishing || activity.isDestroyed) {
             onFailedToShow()
             return
         }

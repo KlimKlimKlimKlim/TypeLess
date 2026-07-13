@@ -38,6 +38,12 @@ fun YandexBannerAd(
                 val adRequest = AdRequest.Builder().build()
                 loadAd(adRequest)
             }
+        },
+        update = { view ->
+            view.setAdSize(BannerAdSize.stickySize(view.context, screenWidthDp))
+        },
+        onRelease = { view ->
+            view.destroy()
         }
     )
 }
