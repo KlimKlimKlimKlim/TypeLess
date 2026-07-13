@@ -211,9 +211,9 @@ fun SettingsScreen(
                         )
                         Text(
                             text = if (isPremium) {
-                                "Ограничения временно сняты"
+                                "Ограничения снятия временно"
                             } else {
-                                "Бесплатная версия: до 5 сниппетов, только General, без аргументов"
+                                "Бесплатная версия — до 5 сниппетов"
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -222,7 +222,7 @@ fun SettingsScreen(
 
                     if (isPremium) {
                         Text(
-                            text = "Активна",
+                            text = "Активно",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
