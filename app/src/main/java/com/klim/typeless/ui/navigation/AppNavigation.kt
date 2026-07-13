@@ -95,9 +95,7 @@ fun AppNavigation() {
                 StatsScreen(navController = navController)
             }
             composable(Screen.Paywall.route) {
-                PaywallScreen(
-                    onBack = { navController.popBackStack() }
-                )
+                PaywallScreen(navController = navController)
             }
         }
 
