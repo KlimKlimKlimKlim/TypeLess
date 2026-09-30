@@ -4,19 +4,6 @@ Android-приложение для быстрой вставки сохранё
 
 [Страница приложения в RuStore](https://www.rustore.ru/catalog/app/com.klim.typeless)
 
-## Интерфейс
-
-<p align="center">
-  <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/25938314-2f7f-49c6-9aab-42aeb6c12042" width="30%" alt="Папки с шаблонами TypeLess">
-  <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/b946edd7-6d9f-46f3-a8b6-0745a7d02934" width="30%" alt="Список текстовых шаблонов">
-  <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/a7bdb18e-e1f3-45dd-a360-7508a758d939" width="30%" alt="Редактирование текстового шаблона">
-</p>
-
-<p align="center">
-  <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/6a2cb52d-aaa4-4e03-b503-2dcc8ae383d5" width="30%" alt="Триггер до автоматической подстановки">
-  <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/b0dcdd9b-0514-49d9-9afd-19355dcd9dea" width="30%" alt="Результат автоматической подстановки">
-</p>
-
 ## Возможности
 
 - Создание и редактирование текстовых шаблонов.
